@@ -81,8 +81,10 @@ def unflatten(flat_id, volume_resolution):
 
 
 def get_world_range(dimensions, voxel_size):
-    min_ = -dimensions / 2 - voxel_size
-    max_ = dimensions / 2 + voxel_size
+    min_ = dimensions[:,0] - voxel_size
+    max_ = dimensions[:,1] + voxel_size
+    # min_ = -dimensions / 2 - voxel_size
+    # max_ = dimensions / 2 + voxel_size
     n_xyz = np.ceil((max_ - min_) / voxel_size).astype(int).tolist()
     max_ = min_ + voxel_size * np.asarray(n_xyz)
     return min_, max_, n_xyz

@@ -3,7 +3,7 @@ data_dir: "/sk3d/dataset/dragon/tis_right/rgb/undistorted/ambient@best"
 cam_params: "/sk3d/addons/dragon/tis_right/rgb/mvsnet_input"
 depth_dir: "/sk3d/addons/dragon/proj_depth/kinect_v2.undist@tis_right.undist"
 gt_mesh: "/sk3d/dataset/dragon/stl/reconstruction/cleaned.ply"
-# subdomain: "fusion"
+subdomain: "fusion"
 
 name: "fusion_inference_dataset_sk3d"
 img_res: [480, 640]
@@ -16,7 +16,7 @@ sample_shift: 0
 
 downsample_scale: 1.
 downsample_mode: null # or sparse
-train_batch_size: 1
+train_batch_size: 50
 eval_batch_size: 1
 max_eval_imgs: 1
 shuffle: True

@@ -201,3 +201,37 @@ class FusionPointNetDataset(torch.utils.data.Dataset):
             }
 
         return data
+
+
+@register("skoltech_fusion_pointnet_dataset")
+class SkoltechFusionPointNetDataset(FusionPointNetDataset):
+    def __init__(self, cfg, stage):
+        super().__init__()
+        self.data_root_dir = cfg.dataset.data_dir
+        file_paths = []
+
+        if stage == "test":
+            self.data_root_dir = f"/home/kejie/repository/fast_sdf/data/rendering/03636649"
+            seqs = sorted(os.listdir(self.data_root_dir))[:10]
+            seqs = ["1a5ebc8575a4e5edcc901650bbbbb0b5"]
+            for seq in seqs:
+                file_names = os.listdir(os.path.join(self.data_root_dir, seq))
+                file_paths.append(
+                    [os.path.join(self.data_root_dir, seq, f) for f in file_names])
+        elif stage == "val":    
+            for file in sorted(os.listdir(self.data_root_dir))[:50]:
+                seqs = sorted(os.listdir(seq_dir))[:10]
+                for seq in seqs:
+                    file_names = os.listdir(os.path.join(seq_dir, seq))
+                    file_names = sorted(file_names)
+                    file_paths.append(
+                        [os.path.join(seq_dir, seq, f) for f in file_names])
+        else:  # stage == "train"
+            for seq_dir in seq_dirs:
+                seqs = sorted(os.listdir(seq_dir))[10:]
+                for seq in seqs:
+                    file_names = os.listdir(os.path.join(seq_dir, seq))
+                    file_names = sorted(file_names)
+                    file_paths.extend(
+                        [os.path.join(seq_dir, seq, f) for f in file_names])
+        self.file_paths = file_paths

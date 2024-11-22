@@ -336,15 +336,17 @@ class SkoltechInferenceDataset(FusionInferenceAbstractDataset):
 
 
     def calculate_dimensions(self):
-        padding = .1
-        mini = np.ones(3) * np.finfo(np.float32).max
-        maxi = np.ones(3) * np.finfo(np.float32).min
-        mesh = trimesh.load(self.gt_mesh)
-        v = np.asarray(mesh.vertices)
-        mini = np.minimum(mini, v.min(axis=0))
-        maxi = np.maximum(maxi, v.max(axis=0))
+        bounds = np.load("/app/bounds_v1.npy")
+        # mini = np.ones(3) * np.finfo(np.float32).max
+        # maxi = np.ones(3) * np.finfo(np.float32).min
+        # mesh = trimesh.load(self.gt_mesh)
+        # v = np.asarray(mesh.vertices)
+        # mini = np.minimum(mini, v.min(axis=0))
+        # maxi = np.maximum(maxi, v.max(axis=0))
+        min_coords = np.min(bounds, axis=1)
 
-        return (maxi - mini) / 2
+        # return (maxi - mini) / 2
+        return bounds #(bounds[:,1] - bounds[:,0])
     
     
     def read_rgb(self, path):
@@ -363,6 +365,7 @@ class SkoltechInferenceDataset(FusionInferenceAbstractDataset):
             lines = [line.rstrip() for line in lines]
         # extrinsics: line [1,5), 4x4 matrix
         T_wc = np.fromstring(' '.join(lines[1:5]), dtype=np.float32, sep=' ').reshape((4, 4))
+        T_wc = np.linalg.inv(T_wc)
         return T_wc
     
     
@@ -433,7 +436,7 @@ class IterableInferenceDataset(torch.utils.data.Dataset):
         return confidence >= self.confidence_level
 
     def _sample_key_frame(self, meta_frame):
-        depth, _, frame_mask = load_depth(
+        depth, _, frame_mask = load_depth_sk3d(
             meta_frame['depth_path'],
             downsample_scale=0,
             max_depth=self.ray_max_dist)

@@ -81,10 +81,10 @@ class NeuralMap:
         with torch.no_grad():
             # local-level fusion
             print("frame['input_pts']: ", frame['input_pts'])
-            # print("n_xyz: ", self.volume.n_xyz)
+            print("n_xyz: ", self.volume.n_xyz)
             print("min_coords: ", self.volume.min_coords)
             print("max_coords: ", self.volume.max_coords)
-            # print("voxel_size: ", self.volume.voxel_size)
+            print("voxel_size: ", self.volume.voxel_size)
             fine_feats, fine_weights, _, fine_coords, fine_n_pts = self.pointnet.encode_pointcloud(
                 frame['input_pts'],  # [1, N, 6]
                 self.volume.n_xyz,
@@ -93,6 +93,8 @@ class NeuralMap:
                 self.volume.voxel_size,
                 return_dense=self.pointnet.dense_volume
             )
+            print("fine coords:", fine_coords)
+            print("fine_n_pts:", fine_n_pts)
             # print("fine_feats", fine_feats.shape)
             if fine_feats is None:
                 return None
@@ -221,7 +223,7 @@ def main(config: DictConfig):
     # setup dataset
     log.info("initializing dataset")
     val_dataset = datasets.get_dataset(config, "val")
-    print(val_dataset[4])
+    # print(val_dataset[4][0]["input_pts"].shape)
     val_loader = DataLoader(
         val_dataset,
         batch_size=config.dataset.eval_batch_size,

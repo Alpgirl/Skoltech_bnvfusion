@@ -709,7 +709,7 @@ class SparseVolume:
         active_coords = self.active_coordinates.detach().cpu().numpy()
         batch_size = 500
         step_size = 0.5
-        level = 0.
+        level = 0.001
 
         all_vertices = []
         all_faces = []
@@ -739,7 +739,9 @@ class SparseVolume:
             sdf = out[0, :, :, 0].reshape(n_batches, H, W, D)
             sdf = sdf.detach().cpu().numpy()
             for j in range(n_batches):
+                # print(f"max sdf={np.max(sdf[j])}, min sdf={np.min(sdf[j])}")
                 if np.max(sdf[j]) > level and np.min(sdf[j]) < level:
+                    # print("YES")
                     verts, faces, normals, values = \
                         marching_cubes(
                             sdf[j],

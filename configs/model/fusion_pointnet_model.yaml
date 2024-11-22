@@ -40,7 +40,7 @@ loss:
   depth_bce_loss: 1.
 
 ray_tracer:
-  ray_max_dist: null #3
+  ray_max_dist: 3
   truncated_units: 10
 
 # for end-to-end

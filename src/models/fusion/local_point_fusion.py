@@ -27,7 +27,7 @@ class LitFusionPointNet(pl.LightningModule):
         self.dense_volume = cfg.trainer.dense_volume
         self.feat_dims = cfg.model.feature_vector_size
         self.interpolate_decode = cfg.model.nerf.interpolate_decode
-        if cfg.model.tiny_cuda:
+        if cfg.model.tiny_cuda: # True
             self.pointnet_backbone = pointnet_utils.tcnnPointNetEncoder(
                 self.feat_dims, tcnn_config=cfg.model.tcnn_config, **cfg.model.point_net)
             self.nerf = tcnnNeRFModel(self.feat_dims, tcnn_config=cfg.model.tcnn_config, **cfg.model.nerf)
@@ -90,13 +90,6 @@ class LitFusionPointNet(pl.LightningModule):
         res_x, res_y, res_z = [int(v) for v in n_xyz]
         in_xyz = input_pts[:, :, :3] * 1.
         in_normal = input_pts[:, :, 3:]
-        # print(f"bmax {bound_max}, bmin {bound_min}")
-        # print(in_xyz[0, :, 0], bound_max[0] - voxel_size)
-        # print(in_xyz[0, :, 1], bound_max[1] - voxel_size)
-        # print(in_xyz[0, :, 2], bound_max[2] - voxel_size)
-        # print(in_xyz[0, :, 0], bound_max[0] + voxel_size)
-        # print(in_xyz[0, :, 1], bound_max[1] + voxel_size)
-        # print(in_xyz[0, :, 2], bound_max[2] + voxel_size)
 
         bound_mask = \
               (in_xyz[0, :, 0] < bound_max[0] - voxel_size) \
@@ -105,7 +98,6 @@ class LitFusionPointNet(pl.LightningModule):
             * (in_xyz[0, :, 0] > bound_min[0] + voxel_size) \
             * (in_xyz[0, :, 1] > bound_min[1] + voxel_size) \
             * (in_xyz[0, :, 2] > bound_min[2] + voxel_size)
-        print(torch.sum(bound_mask))
         if torch.sum(bound_mask) == 0:
             return None, None, None, None, None
         in_xyz = in_xyz[:, bound_mask, :]
@@ -132,7 +124,7 @@ class LitFusionPointNet(pl.LightningModule):
         assert torch.min(unique_grid_ids) >= 0
         point_feats_mean = scatter_mean(point_feats, pinds.unsqueeze(0).unsqueeze(0))
         point_feats_mean[:, :, pcounts<self.min_pts_in_grid] = 0
-        if return_dense:
+        if return_dense: # False
             feat_grids = torch.zeros(
                 (1, self.feat_dims, res_x, res_y, res_z),
                 device=self.device,

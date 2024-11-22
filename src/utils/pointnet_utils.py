@@ -269,14 +269,17 @@ class PointNetEncoder(nn.Module):
 class tcnnPointNetEncoder(nn.Module):
     def __init__(self, feat_dims, in_channels, **kwargs):
         super(tcnnPointNetEncoder, self).__init__()
+        print(1)
         with open(kwargs['tcnn_config']) as config_file:
             config = json.load(config_file)
+        print(2)
         self.model = tcnn.NetworkWithInputEncoding(
             n_input_dims=in_channels,
             n_output_dims=feat_dims,
             encoding_config=config["encoding"],
             network_config=config["network"]
         )
+        print(3)
         self.feat_dims = feat_dims
         self.in_channels = in_channels
 

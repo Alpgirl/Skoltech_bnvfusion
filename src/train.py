@@ -37,6 +37,7 @@ def main(config: DictConfig):
         num_workers=config.dataset.num_workers,
         collate_fn=train_dataset.collate_fn if hasattr(train_dataset, "collate_fn") else None
     )
+
     val_dataset = datasets.get_dataset(config, "val")
     val_loader = DataLoader(
         val_dataset,
