@@ -103,14 +103,37 @@ class LitFusionPointNet(pl.LightningModule):
         in_xyz = in_xyz[:, bound_mask, :]
         in_normal = in_normal[:, bound_mask, :]
 
+        # DEBUG: pcd for in_xyz
+        # in_xyz_ = in_xyz.detach().cpu()[0]
+        # print("in_xyz: shape, dtype", in_xyz_.shape, in_xyz_.dtype)
+
+        # mesh = trimesh.Trimesh(vertices=in_xyz_) #, faces=trimesh.convex.convex_hull(input_pts).faces)
+        # mesh.vertex_normals = in_normals
+        # output_path = os.path.join("/app/bnv_fusion/logs/mesh/", "mesh_encode_pcd.ply")
+        # mesh.export(output_path)
+        # print(f"Mesh exported successfully to {output_path}")
+
         relative_xyz, grid_id = self.get_relative_xyz(in_xyz, bound_min, voxel_size)
+        
+        # DEBUG: pcd for relative_xyz
+        # relative_xyz_ = relative_xyz.detach().cpu().numpy().reshape(-1,3)
+        # print("relative_xyz: shape, dtype", relative_xyz_.shape, relative_xyz_.dtype)
+        
+        # mesh = trimesh.Trimesh(vertices=relative_xyz_) #, faces=trimesh.convex.convex_hull(input_pts).faces)
+        # # mesh.vertex_normals = in_normals
+        # output_path = os.path.join("/app/bnv_fusion/logs/mesh/", "mesh_relative.ply")
+        # mesh.export(output_path)
+        # print(f"Mesh exported successfully to {output_path}")
+
         grid_id = grid_id.reshape(1, -1, 3)  # [1, N, 3]
         pointnet_input = torch.cat(
             [relative_xyz, in_normal.unsqueeze(1).repeat(1, 8, 1, 1)],
             dim=-1
         )  # [1, N, 6]
         pointnet_input = pointnet_input.reshape(1, -1, 6)  # [1, N, 6]
+        print("pointnet_input", pointnet_input.shape)
         point_feats = self(pointnet_input, normalize=True, voxel_size=voxel_size, global_feats=False)
+        print("point_feats", point_feats.shape)
         # point_feats = self.pointnet_backbone(
         #     pointnet_input, False)  # [1, F, N]
         flat_ids = voxel_utils.flatten(
@@ -148,6 +171,7 @@ class LitFusionPointNet(pl.LightningModule):
             unique_grid_ids = voxel_utils.unflatten(unique_flat_ids, n_xyz).long()
             pcounts = pcounts.unsqueeze(-1)
             point_feats_mean = point_feats_mean[0].permute(1, 0)
+            print("point_feats_mean", point_feats_mean.shape)
             return point_feats_mean, pcounts, unique_flat_ids, unique_grid_ids, n_avg_pts
 
     def get_relative_xyz(

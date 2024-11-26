@@ -511,6 +511,7 @@ class SparseVolume:
         self.n_frames += 1
         self.min_pts = min(self.min_pts, n_pts)
         self.max_pts = max(self.max_pts, n_pts)
+        # print("track_n_pts: n_pts", n_pts)
 
     def print_statistic(self):
         print("===========")
@@ -709,7 +710,7 @@ class SparseVolume:
         active_coords = self.active_coordinates.detach().cpu().numpy()
         batch_size = 500
         step_size = 0.5
-        level = 0.001
+        level = 0.0
 
         all_vertices = []
         all_faces = []
@@ -740,8 +741,8 @@ class SparseVolume:
             sdf = sdf.detach().cpu().numpy()
             for j in range(n_batches):
                 # print(f"max sdf={np.max(sdf[j])}, min sdf={np.min(sdf[j])}")
+                # raise
                 if np.max(sdf[j]) > level and np.min(sdf[j]) < level:
-                    # print("YES")
                     verts, faces, normals, values = \
                         marching_cubes(
                             sdf[j],
@@ -810,9 +811,11 @@ class SparseVolume:
         else:
             feats, weights, num_hits = self.query(neighbor_coords)
         mask = torch.min(weights, dim=1)[0] >= self.min_pts_in_grid
+        # print("local_coords", local_coords.shape)
         local_coords_encoded = nerf.xyz_encoding(local_coords)
         nerf_in = torch.cat([local_coords_encoded, feats], dim=-1)
         alpha = nerf.geo_forward(nerf_in)
+        # print("alpha: min, max", alpha.min(), alpha.max())
         alpha = alpha * self.voxel_size
         normalizer = torch.sum(weights_unmasked, dim=1, keepdim=True)
         weights_unmasked = weights_unmasked / normalizer
@@ -832,7 +835,8 @@ class SparseVolume:
             )
             sdf_delta = sdf_delta.permute(0, 2, 3, 4, 1)  # [B, 8, N, S, 1]
             sdf_delta = torch.sum(sdf_delta * weights_unmasked, dim=1)
-            alpha += sdf_delta
+            alpha += sdf_delta        
+        # print("alpha: min, max", alpha.min(), alpha.max())
         return alpha
 
     def save(self, path):

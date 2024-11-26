@@ -80,11 +80,11 @@ class NeuralMap:
             return None
         with torch.no_grad():
             # local-level fusion
-            print("frame['input_pts']: ", frame['input_pts'])
-            print("n_xyz: ", self.volume.n_xyz)
-            print("min_coords: ", self.volume.min_coords)
-            print("max_coords: ", self.volume.max_coords)
-            print("voxel_size: ", self.volume.voxel_size)
+            # print("frame['input_pts']: ", frame['input_pts'])
+            # print("n_xyz: ", self.volume.n_xyz)
+            # print("min_coords: ", self.volume.min_coords)
+            # print("max_coords: ", self.volume.max_coords)
+            # print("voxel_size: ", self.volume.voxel_size)
             fine_feats, fine_weights, _, fine_coords, fine_n_pts = self.pointnet.encode_pointcloud(
                 frame['input_pts'],  # [1, N, 6]
                 self.volume.n_xyz,
@@ -93,8 +93,8 @@ class NeuralMap:
                 self.volume.voxel_size,
                 return_dense=self.pointnet.dense_volume
             )
-            print("fine coords:", fine_coords)
-            print("fine_n_pts:", fine_n_pts)
+            # print("fine coords:", fine_coords)
+            # print("fine_n_pts:", fine_n_pts)
             # print("fine_feats", fine_feats.shape)
             if fine_feats is None:
                 return None
@@ -109,7 +109,7 @@ class NeuralMap:
             depth_map = rgbd[0, -1, :, :]
             rgb = (rgbd[0, :3, :, :].transpose(1, 2, 0) + 0.5) * 255.
             # depth_map = rgbd[0, 3, :, :]
-            print(rgb.shape, depth_map.shape, frame['intr_mat'].shape, frame['T_wc'].shape)
+            # print(rgb.shape, depth_map.shape, frame['intr_mat'].shape, frame['T_wc'].shape)
             self.tsdf_vol.integrate(
                 rgb,  # [h, w, 3], [0, 255]
                 depth_map,  # [h, w], metric depth
@@ -298,7 +298,9 @@ def main(config: DictConfig):
     timer.log("global")
     for n in ["local", "global"]:
         print(f"speed on {n} fusion: {global_steps / timer.times[n]} fps")
-    
+
+    neural_map.volume.print_statistic()
+
     mesh = neural_map.extract_mesh()
     mesh = o3d_helper.post_process_mesh(mesh, vertex_threshold=neural_map.voxel_size / 4)
     mesh_out_path = os.path.join(neural_map.working_dir, "final.ply")

@@ -2,7 +2,7 @@ _class_: LitFusionPointnet
 name: "lit_fusion_pointnet"
 
 feature_vector_size: 8
-voxel_size: 0.001
+voxel_size: 0.009
 train_split: 10000
 train_ray_splits: 1000
 

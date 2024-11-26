@@ -42,7 +42,7 @@ class FusionInferenceAbstractDataset(torch.utils.data.Dataset):
         depth_path = self.depth_paths[idx]
         T_wc_path = self.T_wc_paths[idx]
         intr_mat_path = self.intr_mat_paths[idx]
-        T_wc = self.read_extr_pose(T_wc_path)
+        T_cw = self.read_extr_pose(T_wc_path)
         intr_mat = self.read_intr_pose(intr_mat_path)[:3, :3]
         rgb = self.read_rgb(image_path)
         depth, mask = self.read_depth(depth_path)
@@ -58,15 +58,15 @@ class FusionInferenceAbstractDataset(torch.utils.data.Dataset):
             torch.from_numpy(intr_mat).unsqueeze(0)
         )[0].permute(1, 2, 0).numpy()
         img_h, img_w = depth.shape
-        gt_xyz_map_w = (T_wc @ geometry.get_homogeneous(gt_xyz_map.reshape(-1, 3)).T)[:3, :].T
+        gt_xyz_map_w = (T_cw @ geometry.get_homogeneous(gt_xyz_map.reshape(-1, 3)).T)[:3, :].T
         gt_xyz_map_w = gt_xyz_map_w.reshape(img_h, img_w, 3)
 
         # NOTE: VERY IMPORTANT TO * -1 for normal due to a bug in data preparation in
         # data_prepare_depth_shapenet.py!
-        normal_w = (T_wc[:3, :3] @ normal.reshape(-1, 3).T).T
+        normal_w = (T_cw[:3, :3] @ normal.reshape(-1, 3).T).T
         rgbd = np.concatenate([rgb, depth[None, ...]], axis=0)
         pts_c = geometry.depth2xyz(depth, intr_mat).reshape(-1, 3)
-        pts_w_frame = (T_wc @ geometry.get_homogeneous(pts_c).T)[:3, :].T
+        pts_w_frame = (T_cw @ geometry.get_homogeneous(pts_c).T)[:3, :].T
         input_pts = np.concatenate(
             [pts_w_frame, normal_w],
             axis=-1
@@ -77,7 +77,7 @@ class FusionInferenceAbstractDataset(torch.utils.data.Dataset):
             "img_path": image_path,
             "scene_id": self.scan_id,
             "frame_id": idx,
-            "T_wc": T_wc,
+            "T_wc": T_cw,
             "intr_mat": intr_mat,
             "rgbd": rgbd,
             "mask": mask,
@@ -365,8 +365,8 @@ class SkoltechInferenceDataset(FusionInferenceAbstractDataset):
             lines = [line.rstrip() for line in lines]
         # extrinsics: line [1,5), 4x4 matrix
         T_wc = np.fromstring(' '.join(lines[1:5]), dtype=np.float32, sep=' ').reshape((4, 4))
-        T_wc = np.linalg.inv(T_wc)
-        return T_wc
+        T_cw = np.linalg.inv(T_wc)
+        return T_cw
     
     
     def read_intr_pose(self, path):

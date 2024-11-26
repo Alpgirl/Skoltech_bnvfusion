@@ -30,7 +30,7 @@ def main(config: DictConfig):
     print(input_pts.shape)
     
 
-    mesh = trimesh.Trimesh(vertices=input_pts, faces=trimesh.convex.convex_hull(input_pts).faces)
+    mesh = trimesh.Trimesh(vertices=input_pts) #, faces=trimesh.convex.convex_hull(input_pts).faces)
     mesh.vertex_normals = normals
     output_path = os.path.join(os.getcwd(), "mesh.ply")
     mesh.export(output_path)
